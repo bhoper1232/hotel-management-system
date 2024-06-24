@@ -1,0 +1,24 @@
+spring:
+  sql:
+    init:
+      mode: always
+  application:
+    name: booking-management-service
+  datasource:
+    url: jdbc:postgresql://localhost:5332/booking_management_service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
+server:
+  port: 8081
