@@ -21,4 +21,4 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
 server:
-  port: 8081
+  port: 0

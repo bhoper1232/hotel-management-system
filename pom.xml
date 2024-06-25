@@ -13,6 +13,7 @@
         <module>room-management-service</module>
         <module>booking-management-service</module>
         <module>discovery-server</module>
+        <module>api-gateway</module>
     </modules>
 
     <parent>

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -30,7 +31,7 @@ public class BookingService {
     @Transactional
     public Booking createBooking(Booking booking) {
         Boolean isRoomAvailable = this.restTemplate.getForObject(
-                "http://localhost:8080/api/rooms/availability/%s"
+                "http://room-management-service/api/rooms/availability/%s"
                         .formatted(booking.getRoomId()), Boolean.class);
         if (Boolean.TRUE.equals(isRoomAvailable)) {
             booking.setActive(true);
@@ -44,16 +45,19 @@ public class BookingService {
 
     @Transactional
     public Booking updateBooking(Long id, Booking updatedBooking) {
-        // todo: write an implementation
         Optional<Booking> bookingOptional = this.bookingRepository.findById(id);
         if (bookingOptional.isPresent()) {
             Booking booking = bookingOptional.get();
-            if (booking.getRoomId() != updatedBooking.getRoomId()) {
+            if (!Objects.equals(booking.getRoomId(), updatedBooking.getRoomId())) {
                 Boolean isRoomAvailable = this.restTemplate.getForObject(
                         "http://room-management-service/api/rooms/availability/%s"
                                 .formatted(updatedBooking.getRoomId()), Boolean.class);
-                if (Boolean.TRUE.equals(isRoomAvailable)) booking.setRoomId(
-                        updatedBooking.getRoomId());
+                if (Boolean.TRUE.equals(isRoomAvailable)) {
+                    booking.setRoomId(
+                            updatedBooking.getRoomId());
+                } else {
+                    throw new RuntimeException("Room is not available for booking");
+                }
             }
             booking.setCheckInDate(updatedBooking.getCheckInDate());
             booking.setCheckOutDate(updatedBooking.getCheckOutDate());
