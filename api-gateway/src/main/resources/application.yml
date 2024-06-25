@@ -18,6 +18,12 @@ spring:
         id: room-management-service
         uri: lb:http://room-management-service
         predicates[0]: Path=/api/rooms/**
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/hotel-realm
+
 
 eureka:
   client:
