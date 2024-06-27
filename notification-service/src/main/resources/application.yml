@@ -3,11 +3,26 @@ spring:
     name: notification-service
   kafka:
     bootstrap-servers: localhost:9092
+    consumer:
+      group-id: groupId
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          kafka:
+            consumer:
+              value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+              properties:
+                spring:
+                  kafka:
+                    consumer:
+                      properties:
+                        spring.kafka.consumer.value-deserializer.trusted.packages: "com.bhoper.model"
   mail:
     host: smtp.gmail.com
     port: 587
-    username:
-    password: 
+    username: solianik123456@gmail.com
+    password: sxji jewo cvfx mqbt
     properties:
       mail:
         smtp:

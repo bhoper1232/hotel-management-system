@@ -17,7 +17,7 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Booking> kafkaTemplate;
 
     @GetMapping
     public List<Booking> getAllBookings() {
@@ -36,13 +36,14 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestBody Booking booking) {
+        Booking createdBooking;
         try {
-            Booking createdBooking = this.bookingService.createBooking(booking);
-            kafkaTemplate.send("email", booking.getEmail());
-            return ResponseEntity.ok(createdBooking);
+            createdBooking = this.bookingService.createBooking(booking);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Room is not available");
         }
+        kafkaTemplate.send("booking", createdBooking);
+        return ResponseEntity.ok(createdBooking);
     }
 
     @PatchMapping("{bookingId}")

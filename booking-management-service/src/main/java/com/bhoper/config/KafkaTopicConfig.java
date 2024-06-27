@@ -10,7 +10,7 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic emailTopic() {
-        return TopicBuilder.name("email")
+        return TopicBuilder.name("booking")
                 .build();
     }
 
