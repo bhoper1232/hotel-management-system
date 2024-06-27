@@ -62,6 +62,9 @@ public class BookingService {
             booking.setCheckInDate(updatedBooking.getCheckInDate());
             booking.setCheckOutDate(updatedBooking.getCheckOutDate());
             booking.setCustomerId(updatedBooking.getCustomerId());
+
+            // todo: check if email exists
+
             return booking;
         } else {
             throw new RuntimeException("Booking not found");

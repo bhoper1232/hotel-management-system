@@ -22,6 +22,7 @@ public class Booking {
     private Long id;
     private Long roomId;
     private Long customerId;
+    private String email;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate checkInDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
