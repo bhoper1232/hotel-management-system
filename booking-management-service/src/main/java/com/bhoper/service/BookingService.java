@@ -45,43 +45,37 @@ public class BookingService {
 
     @Transactional
     public Booking updateBooking(Long id, Booking updatedBooking) {
-        Optional<Booking> bookingOptional = this.bookingRepository.findById(id);
-        if (bookingOptional.isPresent()) {
-            Booking booking = bookingOptional.get();
-            if (!Objects.equals(booking.getRoomId(), updatedBooking.getRoomId())) {
-                Boolean isRoomAvailable = this.restTemplate.getForObject(
-                        "http://room-management-service/api/rooms/availability/%s"
-                                .formatted(updatedBooking.getRoomId()), Boolean.class);
-                if (Boolean.TRUE.equals(isRoomAvailable)) {
-                    booking.setRoomId(
-                            updatedBooking.getRoomId());
-                } else {
-                    throw new RuntimeException("Room is not available for booking");
-                }
+        Booking booking = this.bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (!Objects.equals(booking.getRoomId(), updatedBooking.getRoomId())) {
+            Boolean isRoomAvailable = this.restTemplate.getForObject(
+                    "http://room-management-service/api/rooms/availability/%s"
+                            .formatted(updatedBooking.getRoomId()), Boolean.class);
+            if (Boolean.TRUE.equals(isRoomAvailable)) {
+                booking.setRoomId(
+                        updatedBooking.getRoomId());
+            } else {
+                throw new RuntimeException("Room is not available for booking");
             }
-            booking.setCheckInDate(updatedBooking.getCheckInDate());
-            booking.setCheckOutDate(updatedBooking.getCheckOutDate());
-            booking.setCustomerId(updatedBooking.getCustomerId());
-
-            // todo: check if email exists
-
-            return booking;
-        } else {
-            throw new RuntimeException("Booking not found");
         }
+        booking.setCheckInDate(updatedBooking.getCheckInDate());
+        booking.setCheckOutDate(updatedBooking.getCheckOutDate());
+        booking.setCustomerId(updatedBooking.getCustomerId());
+
+        // todo: check if email exists
+
+        return booking;
     }
 
     public void cancelBooking(Long id) {
-        Optional<Booking> bookingOptional = this.bookingRepository.findById(id);
-        if (bookingOptional.isPresent()) {
-            Booking booking = bookingOptional.get();
-            RoomStatusUpdateRequest request = new RoomStatusUpdateRequest("available");
-            this.restTemplate.patchForObject("http://room-management-service/api/rooms/status/%s"
-                    .formatted(id), request, Boolean.class);
-            this.bookingRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Booking not found");
-        }
+        Booking booking = this.bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        RoomStatusUpdateRequest request = new RoomStatusUpdateRequest("available");
+        this.restTemplate.patchForObject("http://room-management-service/api/rooms/status/%s"
+                .formatted(id), request, Boolean.class);
+        this.bookingRepository.deleteById(id);
     }
 
 }

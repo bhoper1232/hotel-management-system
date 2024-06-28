@@ -27,11 +27,7 @@ public class BookingController {
     @GetMapping("{bookingId}")
     public ResponseEntity<Booking> getBookingById(@PathVariable("bookingId") Long id) {
         Optional<Booking> booking =  this.bookingService.findById(id);
-        if (booking.isPresent()) {
-            return ResponseEntity.ok(booking.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return booking.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping

@@ -27,11 +27,7 @@ public class RoomController {
     @GetMapping("{roomId}")
     public ResponseEntity<Room> findRoomById(@PathVariable("roomId") Long id) {
         Optional<Room> room = this.roomService.findById(id);
-        if (room.isPresent()) {
-            return ResponseEntity.ok(room.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return room.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/availability/{id}")

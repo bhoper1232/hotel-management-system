@@ -43,42 +43,37 @@ public class RoomService {
 
     @Transactional
     public Boolean updateRoomStatus(Long roomId, RoomStatusUpdateRequest status) {
-        Optional<Room> room = this.roomRepository.findById(roomId);
-        if (room.isPresent()) {
-            Room existingRoom = room.get();
-            existingRoom.setStatus(status.getStatus());
-            return true;
-        } else {
-            throw new RuntimeException("Room not found");
-        }
+        Room room = this.roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        room.setStatus(status.getStatus());
+        return true;
     }
 
     public Room updateRoomDetails(Long id, Room roomDetails) {
-        Optional<Room> room = this.roomRepository.findById(id);
-        if (room.isPresent()) {
-            Room existingRoom = room.get();
-            boolean changes = false;
-            if (!roomDetails.getType().equals(existingRoom.getType())) {
-                changes = true;
-                existingRoom.setType(roomDetails.getType());
-            }
-            if (roomDetails.getCapacity() != existingRoom.getCapacity()) {
-                changes = true;
-                existingRoom.setCapacity(roomDetails.getCapacity());
-            }
-            if (!roomDetails.getStatus().equals(existingRoom.getStatus())) {
-                changes = true;
-                existingRoom.setStatus(roomDetails.getStatus());
-            }
-            if (roomDetails.getPrice() != existingRoom.getPrice()) {
-                changes = true;
-                existingRoom.setPrice(roomDetails.getPrice());
-            }
-            if (!changes) throw new RuntimeException("No changes were found");
+        Room room = this.roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
 
-            return existingRoom;
-        } else {
-            throw new RuntimeException("Room not found");
+        boolean changes = false;
+        if (!roomDetails.getType().equals(room.getType())) {
+            changes = true;
+            room.setType(roomDetails.getType());
         }
+        if (roomDetails.getCapacity() != room.getCapacity()) {
+            changes = true;
+            room.setCapacity(roomDetails.getCapacity());
+        }
+        if (!roomDetails.getStatus().equals(room.getStatus())) {
+            changes = true;
+            room.setStatus(roomDetails.getStatus());
+        }
+        if (roomDetails.getPrice() != room.getPrice()) {
+            changes = true;
+            room.setPrice(roomDetails.getPrice());
+        }
+
+        if (!changes) throw new RuntimeException("No changes were found");
+
+        return room;
     }
 }
