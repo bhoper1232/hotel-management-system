@@ -66,13 +66,13 @@ public class RoomService {
     }
 
     public boolean isRoomAvailable(Long roomId) {
-        Optional<Room> room = this.roomRepository.findById(roomId);
+        Optional<Room> room = this.findById(roomId);
         return room.isPresent() && "available".equalsIgnoreCase(room.get().getStatus());
     }
 
     @Transactional
     public Boolean updateRoomStatus(Long roomId, RoomStatusUpdateRequest status) {
-        Room room = this.roomRepository.findById(roomId)
+        Room room = this.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
         room.setStatus(status.getStatus());
@@ -80,7 +80,7 @@ public class RoomService {
     }
 
     public Room updateRoomDetails(Long id, Room roomDetails) {
-        Room room = this.roomRepository.findById(id)
+        Room room = this.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
         boolean changes = false;

@@ -3,10 +3,14 @@ package com.bhoper.service;
 import com.bhoper.dto.RoomStatusUpdateRequest;
 import com.bhoper.model.Booking;
 import com.bhoper.repository.BookingRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,14 +22,40 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
 
+
+    JedisPool pool = new JedisPool("localhost", 6379);
+
+    private final Integer TTL = 500;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     private final RestTemplate restTemplate;
 
     public List<Booking> findAll() {
         return this.bookingRepository.findAll();
     }
 
+    public Optional<Booking> getCachedBooking(Long id) {
+        try (Jedis jedis = pool.getResource()) {
+            String key = "booking:%s".formatted(id);
+            String raw = jedis.get(key);
+            if (raw != null) {
+                return Optional.ofNullable(mapper.readValue(raw, Booking.class));
+            }
+            Optional<Booking> bookingOptional = this.bookingRepository.findById(id);
+            if (bookingOptional.isEmpty()) {
+                return Optional.empty();
+            }
+            Booking booking = bookingOptional.get();
+            jedis.setex(key, TTL, mapper.writeValueAsString(booking));
+            return bookingOptional;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Optional<Booking> findById(Long id) {
-        return this.bookingRepository.findById(id);
+        return getCachedBooking(id);
     }
 
     @Transactional
@@ -45,7 +75,7 @@ public class BookingService {
 
     @Transactional
     public Booking updateBooking(Long id, Booking updatedBooking) {
-        Booking booking = this.bookingRepository.findById(id)
+        Booking booking = this.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (!Objects.equals(booking.getRoomId(), updatedBooking.getRoomId())) {
@@ -69,7 +99,7 @@ public class BookingService {
     }
 
     public void cancelBooking(Long id) {
-        Booking booking = this.bookingRepository.findById(id)
+        Booking booking = this.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         RoomStatusUpdateRequest request = new RoomStatusUpdateRequest("available");
