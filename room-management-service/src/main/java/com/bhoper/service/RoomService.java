@@ -3,9 +3,13 @@ package com.bhoper.service;
 import com.bhoper.dto.RoomStatusUpdateRequest;
 import com.bhoper.model.Room;
 import com.bhoper.repository.RoomRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +20,37 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
+    JedisPool pool = new JedisPool("localhost", 6379);
+
+    private final Integer TTL = 500;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     public List<Room> findAll() {
         return this.roomRepository.findAll();
     }
 
+    public Optional<Room> getCachedRoom(Long id) {
+        try (Jedis jedis = pool.getResource()) {
+            String key = "room:%s".formatted(id);
+            String raw = jedis.get(key);
+            if (raw != null) {
+                return Optional.ofNullable(mapper.readValue(raw, Room.class));
+            }
+            Optional<Room> roomOptional = this.roomRepository.findById(id);
+            if (roomOptional.isEmpty()) {
+                return Optional.empty();
+            }
+            Room room = roomOptional.get();
+            jedis.setex(key, TTL, mapper.writeValueAsString(room));
+            return roomOptional;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Optional<Room> findById(Long id) {
-        return roomRepository.findById(id);
+        return getCachedRoom(id);
     }
 
     public List<Room> findByStatus(String status) {
