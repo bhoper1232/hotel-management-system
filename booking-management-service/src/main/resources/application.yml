@@ -2,7 +2,7 @@ spring:
   application:
     name: booking-management-service
   datasource:
-    url: jdbc:postgresql://localhost:5332/booking_management_service
+    url: jdbc:postgresql://localhost:5333/booking_management_service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

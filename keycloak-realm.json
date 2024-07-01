@@ -1,0 +1,17 @@
+{
+  "realm": "hotel-realm",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "hotel-client",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "LDaj2EoYWyYX11EUrpmnED2oNz8x0XcD",
+      "authorizationServicesEnabled": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "redirectUris": ["/*"]
+    }
+  ]
+}
