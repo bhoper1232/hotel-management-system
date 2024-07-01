@@ -76,6 +76,7 @@ public class RoomService {
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
         room.setStatus(status.getStatus());
+        this.roomRepository.save(room);
         return true;
     }
 
