@@ -53,30 +53,113 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - '2181:2181'
+    networks:
+      - microservice_network
 
   kafka:
-    image: 'confluentinc/cp-kafka:latest'
+    image: confluentinc/cp-kafka:latest
     container_name: kafka
     depends_on:
       - zookeeper
     ports:
-      - '9092:9092'
+      - 9092:9092
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - microservice_network
 
   redis:
-    image: 'redis:latest'
+    image: redis:latest
     container_name: redis-server
     ports:
-      - '6379:6379'
+      - 6379:6379
     volumes:
       - redis-data:/data
     command: [ "redis-server", "--appendonly", "yes" ]
+    networks:
+      - microservice_network
+
+  discovery-server:
+    image: bhoper/discovery-server:latest
+    container_name: discovery-server
+    pull_policy: always
+    ports:
+      - "8761:8761"
+    networks:
+      - microservice_network
+
+  api-gateway:
+    image: bhoper/api-gateway:latest
+    container_name: api-gateway
+    pull_policy: always
+    ports:
+      - "8181:8181"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - keycloak
+      - discovery-server
+    networks:
+      - microservice_network
+
+  room-management-service:
+    image: bhoper/room-management-service:latest
+    container_name: room-management-service
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_room_management:5432/room_management_service
+      - SPRING_REDIS_HOST=redis-server
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_TIME_TO_LIVE=500
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres_room_management
+      - discovery-server
+      - api-gateway
+      - redis
+    networks:
+      - microservice_network
+
+  booking-management-service:
+    image: bhoper/booking-management-service:latest
+    container_name: booking-management-service
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_booking_management:5432/booking_management_service
+      - SPRING_REDIS_HOST=redis-server
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_TIME_TO_LIVE=500
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - postgres_booking_management
+      - discovery-server
+      - api-gateway
+      - redis
+      - kafka
+    networks:
+      - microservice_network
+
+  notification-service:
+    image: bhoper/notification-service:latest
+    container_name: notification-service
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      - kafka
+      - discovery-server
+      - api-gateway
+    networks:
+      - microservice_network
 
 networks:
   microservice_network:

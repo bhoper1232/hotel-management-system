@@ -1,0 +1,24 @@
+spring:
+
+  datasource:
+    url: jdbc:postgresql://postgres_room_management:5432/room_management_service
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: redis-server
+      port: 6379
+      time-to-live: 500
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka
+server:
+  port: 8087

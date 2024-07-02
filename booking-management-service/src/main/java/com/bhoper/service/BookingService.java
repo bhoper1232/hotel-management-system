@@ -6,6 +6,7 @@ import com.bhoper.repository.BookingRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -22,10 +23,10 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
 
+    private final JedisPool pool;
 
-    JedisPool pool = new JedisPool("localhost", 6379);
-
-    private final Integer TTL = 500;
+    @Value("${spring.data.redis.time-to-live}")
+    private Integer TTL;
 
     private final ObjectMapper mapper = new ObjectMapper();
 

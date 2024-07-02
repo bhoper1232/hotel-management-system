@@ -6,6 +6,7 @@ import com.bhoper.repository.RoomRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.Jedis;
@@ -20,9 +21,10 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
-    JedisPool pool = new JedisPool("localhost", 6379);
+    private final JedisPool pool;
 
-    private final Integer TTL = 500;
+    @Value("${spring.data.redis.time-to-live}")
+    private Integer TTL;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
